@@ -12,10 +12,6 @@ def f(t, x): return np.array([de.r[i] * x[i] - de.s[i] * x[i] ** 2 +
                            sum([de.A1[i][p] * x[i] * x[p] for p in
                                 range(0, de.n) if p != i]) for i in range(0, de.n)])
 
-# Stop condition if x[i] != 0, not working at the moment. but I prefer the other idea of stop condition.
-def g(x): return np.array([x[i] - 1/de.s[i]*(de.r[i] + sum([de.A1[i][p] * x[p]
-                                for p in range(0, de.n) if p != i])) for i in range(0, de.n)])
-
 # Initiation.
 Final_abundances = np.zeros((de.Y_row, de.n))
 Initial_abundances = np.zeros((de.Y_row, de.n))
@@ -24,28 +20,18 @@ middle_abundances = np.zeros((de.Y_row, de.n))
 fig1, ax = plt.subplots(1, de.Y_row)
 
 for m in range(0, de.Y_row):
+    print(m)
     time_control = 0
     solutions = solve_ivp(f, (time_control, time_control + de.time_span), de.Y1[m][:], max_step=de.max_step)
     abundances = solutions.y.T
     t = solutions.t
     non_zero_abundances_index = np.nonzero(abundances[-1][:])
-    #non_zero_abundances_index = np.where(abundances[-1][:] > de.epsilon)
-    print(abundances[-1][:])
     while max(abs(abundances[-1][:] - abundances[-2][:])) > de.delta:
-    #while max(abs(g(abundances[-1][:])[non_zero_abundances_index])) > de.delta:
-        print(abundances[-1][:])
-        print(g(abundances[-1][:])[non_zero_abundances_index])
-        print(max(abs(g(abundances[-1][:])[non_zero_abundances_index])))
-        print(min(abundances[-1][:][non_zero_abundances_index]))
-        if np.where(abundances[-1][:] < de.epsilon):
-            abundances[-1][:][np.where(abundances[-1][:] < de.epsilon)] = 0
         time_control += de.time_span
         new_solutions = solve_ivp(f, (time_control, time_control + de.time_span),
                                   abundances[-1][:], max_step=de.max_step)
         abundances = np.concatenate((abundances, new_solutions.y.T), axis=0)
         t = np.concatenate((t, new_solutions.t), axis=0)
-        #non_zero_abundances_index = np.nonzero(abundances[-1][:])
-        #non_zero_abundances_index = np.where(abundances[-1][:] > de.epsilon)
 
     for i in range(0, de.n):
         # Plots
@@ -57,8 +43,7 @@ for m in range(0, de.Y_row):
     Final_abundances[m][:] = abundances[-1][:]
     Initial_abundances[m][:] = abundances[0][:]
     middle_abundances[m][:] = abundances[int(len(abundances)/2)][:]
-
-# plots.
+""" Plots """
 plt.subplots_adjust(left=0.1,
                     bottom=0.1,
                     right=0.9,
@@ -108,7 +93,3 @@ plt.show()
 # Count time.
 end = time.time()
 print(end - start)
-
-
-
-
