@@ -4,8 +4,8 @@ from overlap import Overlap
 import unittest
 from dissimilarity import Dissimilarity
 from GLV_model_class import Glv
-from graphs_part_1 import IDOA
-import graphs_part_3_functions as g3
+from simulations_graphs import IDOA
+import functions as fun
 
 class TestOverlap(unittest.TestCase):
     """
@@ -118,18 +118,18 @@ class TestG3(unittest.TestCase):
         self.single_sample = np.array([0, 2, 0, 4, 2])
 
     def test_find_most_abundant_rows(self):
-        most_ab_data = g3.find_most_abundant_rows(self.data, 1)
+        most_ab_data = fun.find_most_abundant_rows(self.data, 1)
         self.assertEqual(most_ab_data.tolist(), np.array([[2, 2, 4, 18]]).tolist())
 
     def test_normalize_data(self):
-        norm_data = g3.normalize_data(self.data)
+        norm_data = fun.normalize_data(self.data)
         self.assertEqual(np.sum(norm_data, axis=0).tolist(), np.ones(np.size(self.data, axis=1)).tolist())
 
     def test_create_shuffled(self):
-        shuffled = g3.create_shuffled(self.single_sample, self.data)
+        shuffled = fun.create_shuffled(self.single_sample, self.data)
         self.assertEqual(shuffled[2], 0)
 
     def test_create_randomized_cohort(self):
         self.data = np.array([[1, 0, 4, 5], [3, 2, 6, 0], [3, 0, 4, 5]]).T
         self.samples = np.array([[1, 0, 4, 5], [3, 2, 6, 0]]).T
-        rand_samples = g3.create_randomized_cohort(self.data, self.samples)
+        rand_samples = fun.create_randomized_cohort(self.data, self.samples)

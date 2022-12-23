@@ -39,8 +39,11 @@ class Dissimilarity:
 
     def calculate_dissimilarity(self):
         # Calculate dissimilarity
-        self.dissimilarity = np.sqrt((self.dkl(self.normalized_sample_1_hat, self.z) +
-                                      self.dkl(self.normalized_sample_2_hat, self.z)) / 2)
+        if ((self.dkl(self.normalized_sample_1_hat, self.z) + self.dkl(self.normalized_sample_2_hat, self.z)) / 2) > 0:
+            self.dissimilarity = np.sqrt((self.dkl(self.normalized_sample_1_hat, self.z) +
+                                          self.dkl(self.normalized_sample_2_hat, self.z)) / 2)
+        else:
+            self.dissimilarity = 0
         return self.dissimilarity
 
 

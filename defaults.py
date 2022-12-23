@@ -2,18 +2,19 @@ import numpy as np
 import math
 
 # Parameters.
-n = 30
+n = 10
 s = np.ones(n)
 s_new = np.ones(n)
 r = np.random.uniform(0, 1, n)
 r_new = np.random.uniform(0, 1, n)
-delta = 10**-2
-Y_row = 30
+delta = 10**-4
+Y_row = 10
 time_span = 50
-max_step = 2
+max_step = 3
+sigma_value = 0.003
 
-# Calculation of the matrix A for the simulation.
-def calc_matrix(num_of_species, sigma=0.0005):
+#%% Calculation of the matrix A for the simulation.
+def calc_matrix(num_of_species, sigma=sigma_value):
     interaction_matrix = np.zeros([num_of_species, num_of_species])
     p = 0.1
     for row, col in np.ndindex(interaction_matrix.shape):

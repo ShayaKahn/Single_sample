@@ -1,10 +1,10 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from graphs_part_3_functions import normalize_data
+from functions import normalize_data
 from data_filter import DataFilter
 from scipy.spatial import distance_matrix
 from sklearn.manifold import MDS
-from graphs_part_4_functions import calc_bray_curtis_dissimilarity
+from functions import calc_bray_curtis_dissimilarity
 from IDOA_class import IDOA
 from scipy.spatial.distance import cdist
 import os
@@ -54,10 +54,10 @@ ax.set_xlim([-4, 1])
 ax.set_ylim([-4, 1])
 
 ########## Bray Curtis ##########
-dist_ACD_control_vector = calc_bray_curtis_dissimilarity(ACD_data.T, control_data.T)[0]
-dist_control_ACD_vector = calc_bray_curtis_dissimilarity(control_data.T, ACD_data.T)[0]
-dist_control_control_vector = calc_bray_curtis_dissimilarity(control_data.T, control_data.T)[0]
-dist_ACD_ACD_vector = calc_bray_curtis_dissimilarity(ACD_data.T, ACD_data.T)[0]
+dist_ACD_control_vector = calc_bray_curtis_dissimilarity(ACD_data.T, control_data.T)
+dist_control_ACD_vector = calc_bray_curtis_dissimilarity(control_data.T, ACD_data.T)
+dist_control_control_vector = calc_bray_curtis_dissimilarity(control_data.T, control_data.T)
+dist_ACD_ACD_vector = calc_bray_curtis_dissimilarity(ACD_data.T, ACD_data.T)
 
 fig1, ax1 = plt.subplots()
 ax1.scatter(dist_control_ACD_vector, dist_ACD_ACD_vector, color='blue', label='ACD')

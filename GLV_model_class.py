@@ -1,7 +1,8 @@
 import numpy as np
 from scipy.integrate import solve_ivp
 import defaults as de
-
+import cython.parallel as p
+import concurrent.futures
 class Glv:
     """
     This class is responsible to solve the GLV model with verification of reaching the steady state
@@ -47,20 +48,27 @@ class Glv:
         def f(t, x):
             return np.array([self.r[i] * x[i] - self.s[i] * x[i] ** 2 +
                              sum([self.A[i][p] * x[i] * x[p] for p in
-                                  range(0, self.n) if p != i]) for i in range(0, self.n)])
+                                  p.prange(self.n, nogil=True) if p != i]) for i in p.prange(self.n, nogil=True)])
         if self.smp > 1:  # Solution for cohort
-            for m in range(0, self.smp):
-                print(m)
+            def execute_process(num_samples):
+                print('a')
                 time_control = 0
                 solutions = solve_ivp(f, (time_control, time_control + self.time_span),
-                                      self.Y[m][:], max_step=self.max_step)
+                                        self.Y[num_samples][:], max_step=self.max_step)
                 abundances = solutions.y.T
                 while max(abs(abundances[-1][:] - abundances[-2][:])) > self.delta:
                     time_control += self.time_span
                     new_solutions = solve_ivp(f, (time_control, time_control + self.time_span),
-                                              abundances[-1][:], max_step=self.max_step)
+                                                abundances[-1][:], max_step=self.max_step)
                     abundances = np.concatenate((abundances, new_solutions.y.T), axis=0)
-                self.Final_abundances[m][:] = abundances[-1][:]
+                self.Final_abundances[num_samples][:] = abundances[-1][:]
+            #  Create a ThreadPoolExecutor with 10 worker threads
+            with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+                # Process the elements of the list in parallel
+                results = [executor.submit(execute_process, num_samples) for num_samples in range(self.smp)]
+                for future in concurrent.futures.as_completed(results):
+                    result = future.result()
+
         else:  # Solution for single sample
             time_control = 0
             solutions = solve_ivp(f, (time_control, time_control + self.time_span),
@@ -72,7 +80,6 @@ class Glv:
                                           abundances[-1][:], max_step=self.max_step)
                 abundances = np.concatenate((abundances, new_solutions.y.T), axis=0)
             self.Final_abundances_single_sample[:] = abundances[-1][:]
-
     def solve_noisy(self):  # Solution with noise
         """
         Solution of the GLV model with noisy matrix.
@@ -81,17 +88,15 @@ class Glv:
             noisy_matrix_list = de.calc_matrix_vector_with_noise_non_homogeneous(self.smp, self.A, self.B)
         else:  # Creates noisy matrix from a single matrix A
             noisy_matrix_list = de.calc_matrix_vector_with_noise(self.smp, self.A)
-        for m in range(0, self.smp):  # Solve glv with the noisy matrix
-            noisy_matrix = noisy_matrix_list[m]
+        def execute_process(num_samples):
+            noisy_matrix = noisy_matrix_list[num_samples]
             # GLV formula.
-
             def f(t, x):
                 return np.array([self.r[i] * x[i] - self.s[i] * x[i] ** 2 +
                                  sum([noisy_matrix[i][p] * x[i] * x[p] for p in
                                       range(0, self.n) if p != i]) for i in range(0, self.n)])
-            print(m)
             time_control = 0
-            solutions = solve_ivp(f, (time_control, time_control + self.time_span), self.Y[m][:],
+            solutions = solve_ivp(f, (time_control, time_control + self.time_span), self.Y[num_samples][:],
                                   max_step=self.max_step)
             abundances = solutions.y.T
             while max(abs(abundances[-1][:] - abundances[-2][:])) > self.delta:
@@ -99,7 +104,13 @@ class Glv:
                 new_solutions = solve_ivp(f, (time_control, time_control + self.time_span),
                                           abundances[-1][:], max_step=self.max_step)
                 abundances = np.concatenate((abundances, new_solutions.y.T), axis=0)
-            self.Final_abundances[m][:] = abundances[-1][:]
+            self.Final_abundances[num_samples][:] = abundances[-1][:]
+            #  Create a ThreadPoolExecutor with 10 worker threads
+        with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
+            # Process the elements of the list in parallel
+            results = [executor.submit(execute_process, num_samples) for num_samples in range(self.smp)]
+            for future in concurrent.futures.as_completed(results):
+                result = future.result()
 
     def normalize_results(self):
         """
