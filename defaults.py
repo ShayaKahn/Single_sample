@@ -1,18 +1,18 @@
 import numpy as np
 import math
+from scipy.sparse import csr_matrix
 
 # Parameters.
-n = 10
+n = 300
 s = np.ones(n)
 s_new = np.ones(n)
 r = np.random.uniform(0, 1, n)
 r_new = np.random.uniform(0, 1, n)
 delta = 10**-4
-Y_row = 10
+Y_row = 300
 time_span = 50
-max_step = 3
+max_step = 2
 sigma_value = 0.003
-
 #%% Calculation of the matrix A for the simulation.
 def calc_matrix(num_of_species, sigma=sigma_value):
     interaction_matrix = np.zeros([num_of_species, num_of_species])
@@ -29,6 +29,12 @@ A1 = calc_matrix(n)
 A2 = calc_matrix(n)
 A3 = calc_matrix(n, sigma=0.01)
 A4 = calc_matrix(n, sigma=0.01)
+
+# Two different A matrices for different  cohorts.
+#A1 = csr_matrix(calc_matrix(n))
+#A2 = csr_matrix(calc_matrix(n))
+#A3 = csr_matrix(calc_matrix(n, sigma=0.01))
+#A4 = csr_matrix(calc_matrix(n, sigma=0.01))
 
 def calc_matrix_vector_with_noise(number_of_samples, interaction_matrix, noise_off=False, maximum_noise=False):
     if noise_off:

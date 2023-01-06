@@ -4,8 +4,8 @@ from overlap import Overlap
 import unittest
 from dissimilarity import Dissimilarity
 from GLV_model_class import Glv
-from simulations_graphs import IDOA
 import functions as fun
+from DOC_class import DOC
 
 class TestOverlap(unittest.TestCase):
     """
@@ -133,3 +133,24 @@ class TestG3(unittest.TestCase):
         self.data = np.array([[1, 0, 4, 5], [3, 2, 6, 0], [3, 0, 4, 5]]).T
         self.samples = np.array([[1, 0, 4, 5], [3, 2, 6, 0]]).T
         rand_samples = fun.create_randomized_cohort(self.data, self.samples)
+
+class TestFunctions(unittest.TestCase):
+    def setUp(self) -> None:
+        self.first_cohort = np.array([[1, 2, 5, 8], [3, 6, 8, 0], [5, 2, 1, 4]])
+        self.second_cohort = np.array([[5, 7, 9, 3], [4, 4, 6, 1], [5, 0, 2, 1], [2, 3, 6, 1]])
+
+    def test_calc_bray_curtis_dissimilarity(self):
+        self.assertEqual(np.size(fun.calc_bray_curtis_dissimilarity(self.first_cohort, self.second_cohort)),
+                         np.size(self.second_cohort, axis=0))
+
+        self.assertEqual(fun.calc_bray_curtis_dissimilarity_sklearn(self.first_cohort).tolist(),
+                         fun.calc_bray_curtis_dissimilarity(self.first_cohort, self.first_cohort).tolist())
+
+class TestDoc(unittest.TestCase):
+    def setUp(self) -> None:
+        self.cohort = np.array([[1, 2, 2, 1, 1], [1, 2, 0, 1, 1], [2, 1, 2, 2, 1], [2, 2, 2, 2, 3]])
+        self.doc = DOC(self.cohort)
+
+    def test_Doc(self):
+        DOC_mat = self.doc.calc_DOC()
+        print(DOC_mat)

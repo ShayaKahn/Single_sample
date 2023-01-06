@@ -11,7 +11,7 @@ start = time.time()
 
 # GLV formula.
 def f(t, x): return np.array([de.r[i] * x[i] - de.s[i] * x[i] ** 2 + sum(
-    [de.A1[i][p] * x[i] * x[p] for p in p.prange(
+    [de.A1[i, p] * x[i] * x[p] for p in p.prange(
         de.n, nogil=True) if p != i]) for i in p.prange(de.n, nogil=True)])
 
 # Initiation.
@@ -49,8 +49,9 @@ with concurrent.futures.ThreadPoolExecutor(max_workers=5) as executor:
     results = [executor.submit(solve_glv_model, num_samples) for num_samples in range(de.Y_row)]
     for future in concurrent.futures.as_completed(results):
         result = future.result()
+plt.show()
 
-""" Plots """
+########## Plots ##########
 plt.subplots_adjust(left=0.1,
                     bottom=0.1,
                     right=0.9,

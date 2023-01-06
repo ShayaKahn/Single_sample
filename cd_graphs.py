@@ -8,6 +8,7 @@ import os
 from functions import Confusion_matrix, Confusion_matrix_comb
 from scipy.spatial.distance import cdist
 import matplotlib
+from DOC_class import DOC
 matplotlib.rcParams['text.usetex'] = True
 
 os.chdir(r'C:\Users\shaya\OneDrive\Desktop\IDOA\CD data')
@@ -34,10 +35,16 @@ control_data = control_data.to_numpy()
 cd_data = normalize_data(cd_data)
 control_data = normalize_data(control_data)
 
+########## Calculate DOC ##########
+Doc = DOC(control_data.T)
+Doc_mat = Doc.calc_DOC()
+Doc_CD = DOC(cd_data.T)
+Doc_mat_CD = Doc_CD.calc_DOC()
+
 ########## IDOA ##########
-idoa_cd_cd = IDOA(cd_data.T, cd_data.T)
+idoa_cd_cd = IDOA(cd_data.T, cd_data.T, self_cohort=True)
 idoa_cd_cd_vector = idoa_cd_cd.calc_idoa_vector()
-idoa_control_control = IDOA(control_data.T, control_data.T)
+idoa_control_control = IDOA(control_data.T, control_data.T, self_cohort=True)
 idoa_control_control_vector = idoa_control_control.calc_idoa_vector()
 idoa_cd_control = IDOA(cd_data.T, control_data.T)
 idoa_cd_control_vector = idoa_cd_control.calc_idoa_vector()
@@ -54,13 +61,14 @@ ax.set_aspect('equal', adjustable='box')
 ax.plot([-5, 5], [-5, 5], ls="--", c=".3")
 ax.set_xlim([-1.2, 1])
 ax.set_ylim([-1.2, 1])
+plt.show()
 
 ########## Bray Curtis ##########
-dist_cd_control_vector = calc_bray_curtis_dissimilarity(cd_data.T, control_data.T, median=True)
-dist_control_cd_vector = calc_bray_curtis_dissimilarity(control_data.T, cd_data.T, median=True)
+dist_cd_control_vector = calc_bray_curtis_dissimilarity(cd_data.T, control_data.T, median=False)
+dist_control_cd_vector = calc_bray_curtis_dissimilarity(control_data.T, cd_data.T, median=False)
 dist_control_control_vector = calc_bray_curtis_dissimilarity(control_data.T, control_data.T, self_cohort=True,
-                                                             median=True)
-dist_cd_cd_vector = calc_bray_curtis_dissimilarity(cd_data.T, cd_data.T, self_cohort=True, median=True)
+                                                             median=False)
+dist_cd_cd_vector = calc_bray_curtis_dissimilarity(cd_data.T, cd_data.T, self_cohort=True, median=False)
 
 fig1, ax1 = plt.subplots()
 ax1.scatter(dist_control_cd_vector, dist_cd_cd_vector, color='blue', label='CD')
@@ -72,6 +80,8 @@ ax1.set_aspect('equal', adjustable='box')
 ax1.plot([-5, 5], [-5, 5], ls="--", c=".3")
 ax1.set_xlim([0.6, 1])
 ax1.set_ylim([0.6, 1])
+ax1.set_ylim([-2, 2])
+plt.show()
 
 ########## PCoA graph ##########
 combined_data = np.concatenate((cd_data.T, control_data.T), axis=0)
@@ -91,6 +101,7 @@ ax3.axhline(y=0, color='black', linestyle='--')
 ax3.axvline(x=0, color='black', linestyle='--')
 ax3.set_xlim([-2, 2])
 ax3.set_ylim([-0.075, 0.1])
+plt.show()
 
 ########## Confusion matrices ##########
 con_mat_distances, y_exp_dist, y_pred_dist = Confusion_matrix(

@@ -7,10 +7,19 @@ from scipy.spatial.distance import cdist
 from IDOA_class import IDOA
 from functions import Confusion_matrix, Confusion_matrix_comb, plot_confusion_matrix,\
     create_PCA, create_PCoA, generate_cohort
+from data_filter import DataFilter
+import os
 
+os.chdir(r'C:\Users\shaya\OneDrive\Desktop\IDOA\Distance_methods_simulations\Saved_simulations')
+os.chdir(r'C:\Users\shaya\OneDrive\Desktop\IDOA\Distance_methods_simulations\Saved_simulations')
 matplotlib.rcParams['text.usetex'] = True
 
 # Two cohorts --> case: r1=r2 sigma=0.0005.
+
+#data = DataFilter('first_cohort200_pow_4.csv', second_io='second_cohort200_pow_4.csv',
+#                  two_data_sets=True, file_type='csv')
+#cohort1 = data.first_data.to_numpy()
+#cohort2 = data.second_data.to_numpy()
 cohort1 = generate_cohort(de.Y_row, de.n, de.delta, de.r, de.s, de.A1, de.Y1, de.time_span, de.max_step)
 cohort2 = generate_cohort(de.Y_row, de.n, de.delta, de.r, de.s, de.A2, de.Y2, de.time_span, de.max_step)
 
@@ -20,31 +29,51 @@ mean_dist_2_2 = calc_bray_curtis_dissimilarity(cohort2, cohort2, self_cohort=Tru
 dist_mat_1 = cdist(combined_cohorts_1_2, combined_cohorts_1_2, 'braycurtis')
 
 ########## PCoA ##########
-create_PCoA(dist_mat_1, de.Y_row, f'PCoA graph $r_1$ = $r_2$ and $sigma$ = {de.sigma_value}', '$cohort_1$', '$cohort_2$')
+create_PCoA(dist_mat_1, np.size(cohort1, axis=0), f'PCoA graph $r_1$ = $r_2$ and $sigma$ = {de.sigma_value}',
+            '$cohort_1$', '$cohort_2$')
 
-########## Bray Curtis ##########
+########## Bray Curtis - mean ##########
 mean_dist_1_2 = calc_bray_curtis_dissimilarity(cohort1, cohort2)
 mean_dist_2_1 = calc_bray_curtis_dissimilarity(cohort2, cohort1)
 fig1, ax1 = plt.subplots()
 ax1.scatter(mean_dist_1_1, mean_dist_2_1, color='blue', label='$cohort_1$')
-ax1.scatter(mean_dist_1_2, mean_dist_2_2, color='red', label='$cohort_2$')
+ax1.scatter(mean_dist_1_2, mean_dist_2_2, color='red', label='$cohort_2$', alpha=0.6)
 ax1.legend(loc='lower right')
 ax1.set_xlabel('Mean distance to cohort 1')
 ax1.set_ylabel('Mean distance to cohort 2')
-ax1.set_title(f'Bray Curtis distances $r_1$ = $r_2$ and $sigma$ = {de.sigma_value}')
+ax1.set_title(f'Bray Curtis (mean) $r_1$ = $r_2$ and $sigma$ = {de.sigma_value}')
 ax1.set_aspect('equal', adjustable='box')
 ax1.plot([-5, 5], [-5, 5], ls="--", c=".3")
 ax1.set_xlim([0.22, 0.46])
 ax1.set_ylim([0.22, 0.46])
+plt.show()
+
+########## Bray Curtis - median ##########
+median_dist_1_1 = calc_bray_curtis_dissimilarity(cohort1, cohort1, self_cohort=True, median=True)
+median_dist_2_2 = calc_bray_curtis_dissimilarity(cohort2, cohort2, self_cohort=True, median=True)
+median_dist_1_2 = calc_bray_curtis_dissimilarity(cohort1, cohort2, median=True)
+median_dist_2_1 = calc_bray_curtis_dissimilarity(cohort2, cohort1, median=True)
+fig2, ax2 = plt.subplots()
+ax2.scatter(median_dist_1_1, median_dist_2_1, color='blue', label='$cohort_1$')
+ax2.scatter(median_dist_1_2, median_dist_2_2, color='red', label='$cohort_2$', alpha=0.6)
+ax2.legend(loc='lower right')
+ax2.set_xlabel('Median distance to cohort 1')
+ax2.set_ylabel('Median distance to cohort 2')
+ax2.set_title(f'Bray Curtis (median) $r_1$ = $r_2$ and $sigma$ = {de.sigma_value}')
+ax2.set_aspect('equal', adjustable='box')
+ax2.plot([-5, 5], [-5, 5], ls="--", c=".3")
+ax2.set_xlim([0.22, 0.46])
+ax2.set_ylim([0.22, 0.46])
+plt.show()
 
 ########## PCA graph ##########
-create_PCA(combined_cohorts_1_2, de.Y_row, f'PCA graph $r_1$ = $r_2$ and $sigma$ = {de.sigma_value}',
+create_PCA(combined_cohorts_1_2, np.size(cohort1, axis=0), f'PCA graph $r_1$ = $r_2$ and $sigma$ = {de.sigma_value}',
            '$cohort_1$', '$cohort_2$')
 
 ########## IDOA ##########
-idoa_1_1 = IDOA(cohort1, cohort1)
+idoa_1_1 = IDOA(cohort1, cohort1, self_cohort=True)
 idoa_1_1_vector = idoa_1_1.calc_idoa_vector()
-idoa_2_2 = IDOA(cohort2, cohort2)
+idoa_2_2 = IDOA(cohort2, cohort2, self_cohort=True)
 idoa_2_2_vector = idoa_2_2.calc_idoa_vector()
 idoa_1_2 = IDOA(cohort1, cohort2)
 idoa_1_2_vector = idoa_1_2.calc_idoa_vector()
@@ -53,7 +82,7 @@ idoa_2_1_vector = idoa_2_1.calc_idoa_vector()
 
 fig3, ax3 = plt.subplots()
 ax3.scatter(idoa_1_1_vector, idoa_2_1_vector, color='blue', label='$cohort_1$')
-ax3.scatter(idoa_1_2_vector, idoa_2_2_vector, color='red', label='$cohort_2$')
+ax3.scatter(idoa_1_2_vector, idoa_2_2_vector, color='red', label='$cohort_2$', alpha=0.6)
 ax3.legend(loc='lower right')
 ax3.set_xlabel('IDOA w.r.t $cohort_1$')
 ax3.set_ylabel('IDOA w.r.t $cohort_2$')
@@ -62,8 +91,9 @@ ax3.plot([-5, 5], [-5, 5], ls="--", c=".3")
 ax3.set_title(f'IDOA graph $r_1$ = $r_2$ and $sigma$ = {de.sigma_value}')
 ax3.set_xlim([-0.03, 0.03])
 ax3.set_ylim([-0.03, 0.03])
+plt.show()
 
-########## Confusion matrices ##########
+########## Confusion matrices - mean ##########
 con_mat_distances_1, y_exp_dist_1, y_pred_dist_1 = Confusion_matrix(mean_dist_1_2, mean_dist_2_2, mean_dist_2_1,
                                                                     mean_dist_1_1)
 con_mat_IDOA_1, y_exp_IDOA_1, y_pred_IDOA_1 = Confusion_matrix(idoa_1_2_vector, idoa_2_2_vector, idoa_2_1_vector,
@@ -73,7 +103,7 @@ plot_confusion_matrix(con_mat_distances_1,
                       fr'Confusion matrix - distances for $r_1$ = $r_2$ and $sigma$ = {de.sigma_value}')
 plot_confusion_matrix(con_mat_IDOA_1, f'Confusion matrix - IDOA $r_1$ = $r_2$ and $sigma$ = {de.sigma_value}')
 
-########## Confusion matrix - combination of the methods ##########
+########## Confusion matrix - combination of the methods - mean ##########
 con_mat_distances_comb_or, y_exp_dist_comb_or, y_pred_dist_comb_or = Confusion_matrix_comb(mean_dist_1_2, mean_dist_2_2,
                                                                                   mean_dist_2_1, mean_dist_1_1,
                                                                                   idoa_1_2_vector, idoa_2_2_vector,
@@ -90,7 +120,34 @@ con_mat_distances_comb_and, y_exp_dist_comb_and, y_pred_dist_comb_and = Confusio
 plot_confusion_matrix(con_mat_distances_comb_and,
                       f'Confusion matrix - IDOA and distances for $r_1$ = $r_2$ and $sigma$ = {de.sigma_value}')
 
+########## Confusion matrices - median ##########
+con_mat_distances_1_median, y_exp_dist_1_median, y_pred_dist_1_median = Confusion_matrix(
+    median_dist_1_2, median_dist_2_2, median_dist_2_1, median_dist_1_1)
+
+plot_confusion_matrix(con_mat_distances_1_median,
+                      fr'Confusion matrix - distances (median) for $r_1$ = $r_2$ and $sigma$ = {de.sigma_value}')
+
+########## Confusion matrix - combination of the methods - mean ##########
+con_mat_distances_comb_or_median, y_exp_dist_comb_or_median, y_pred_dist_comb_or_median = Confusion_matrix_comb(
+                                                                                  median_dist_1_2, median_dist_2_2,
+                                                                                  median_dist_2_1, median_dist_1_1,
+                                                                                  idoa_1_2_vector, idoa_2_2_vector,
+                                                                                  idoa_2_1_vector, idoa_1_1_vector)
+plot_confusion_matrix(con_mat_distances_comb_or_median,
+                      f'Confusion matrix - IDOA or distances (median) for $r_1$ = $r_2$ and $sigma$ = {de.sigma_value}')
+
+con_mat_distances_comb_and_median, y_exp_dist_comb_and_median, y_pred_dist_comb_and_median = Confusion_matrix_comb(
+                                                                                median_dist_1_2, median_dist_2_2,
+                                                                                median_dist_2_1, median_dist_1_1,
+                                                                                idoa_1_2_vector, idoa_2_2_vector,
+                                                                                idoa_2_1_vector, idoa_1_1_vector,
+                                                                                And=True)
+plot_confusion_matrix(con_mat_distances_comb_and,
+                      f'Confusion matrix - IDOA and distances (median) for $r_1$ = $r_2$ and $sigma$ = {de.sigma_value}')
+
+"""
 # Two cohorts --> case: r1!=r2 sigma=0.0005.
+
 cohort4 = generate_cohort(de.Y_row, de.n, de.delta, de.r_new, de.s, de.A2, de.Y2, de.time_span, de.max_step)
 
 combined_cohorts_3_4 = np.concatenate((cohort1, cohort4), axis=0)
@@ -125,5 +182,5 @@ ax5.set_ylim([0.2, 0.7])
 ########## PCA graph ##########
 create_PCA(combined_cohorts_3_4, de.Y_row, fr'PCA graph $r_3$ $\neq$ $r_4$ and $sigma$ = {de.sigma_value}', '$cohort_3$',
            '$cohort_4$')
+"""
 
-plt.show()

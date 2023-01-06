@@ -3,15 +3,21 @@ from scipy.spatial.distance import jaccard
 import numpy as np
 
 class DataFilter:
-    def __init__(self, io, second_io=0, two_data_sets=False):
+    def __init__(self, io, second_io=' ', two_data_sets=False, file_type='xlsx'):
         self.io = io
-        self.data = pd.read_excel(self.io)
+        if file_type == 'csv':
+            self.first_data = pd.read_csv(self.io, header=None)
+        else:
+            self.first_data = pd.read_excel(self.io)
         self.first_set, self.second_set = 0, 0
         if two_data_sets:
             self.second_io = second_io
-            self.second_data = pd.read_excel(self.second_io)
-            self.index = len(self.data.columns)
-            self.data = pd.concat([self.data, self.second_data], axis=1)
+            if file_type == 'csv':
+                self.second_data = pd.read_csv(self.second_io, header=None)
+            else:
+                self.second_data = pd.read_excel(self.second_io)
+            self.index = len(self.first_data.columns)
+            self.data = pd.concat([self.first_data, self.second_data], axis=1)
 
     def remove_less_one_data(self):
         mean_rows = self.data.mean(axis=1)
