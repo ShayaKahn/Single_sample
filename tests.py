@@ -6,6 +6,7 @@ from dissimilarity import Dissimilarity
 from GLV_model_class import Glv
 import functions as fun
 from DOC_class import DOC
+from IDOA_class import IDOA
 
 class TestOverlap(unittest.TestCase):
     """
@@ -154,3 +155,59 @@ class TestDoc(unittest.TestCase):
     def test_Doc(self):
         DOC_mat = self.doc.calc_DOC()
         print(DOC_mat)
+
+class TestIdoaClass(unittest.TestCase):
+    """
+    This class tests the IDOA class.
+    """
+    def setUp(self) -> None:
+        # Define simple normalized cohorts.
+        self.cohort_1 = np.array([[0.2, 0, 0.4, 0, 0.4], [0, 0.1, 0.3, 0.2, 0.4], [0.5, 0.4, 0.05, 0.05, 0],
+                                 [0.1, 0.1, 0.1, 0.1, 0.6]])
+        self.cohort_2 = np.array([[0.1, 0.1, 0.5, 0, 0.3], [0.2, 0, 0.4, 0.1, 0.3], [0.3, 0.4, 0, 0.1, 0.2],
+                                 [0.2, 0.2, 0.2, 0.1, 0.3]])
+        # Initialize IDOA not counting for the fact we loaded the same cohort.
+        self.IDOA_self_cohort = IDOA(self.cohort_1, self.cohort_1, self_cohort=False)
+        # Initialize IDOA counting for the fact we loaded the same cohort, this means we're not calculating
+        # Dissimilarity and overlap of the same sample.
+        self.IDOA_self_cohort_True = IDOA(self.cohort_1, self.cohort_1, self_cohort=True)
+
+    def test_IDOA_class(self):
+        # Apply IDOA for both cases.
+        self.IDOA_vector_self_cohort = self.IDOA_self_cohort.calc_idoa_vector()
+        self.IDOA_vector_self_cohort_True = self.IDOA_self_cohort_True.calc_idoa_vector()
+        # Here I check if the diagonal of the overlap and dissimilarity matrices have ones and zeros respectively on the
+        # diagonal, I expect it to be True.
+        self.assertEqual(np.ones(self.cohort_1.shape[0]).tolist(), np.diag(self.IDOA_self_cohort.overlap_mat).tolist())
+        self.assertEqual(np.zeros(self.cohort_1.shape[0]).tolist(), np.diag(self.IDOA_self_cohort.dissimilarity_mat
+                                                                            ).tolist())
+        # Here I check the opposite case.
+        self.assertNotEqual(np.ones(self.cohort_1.shape[0]).tolist(), np.diag(
+            self.IDOA_self_cohort_True.overlap_mat).tolist())
+        self.assertNotEqual(np.zeros(self.cohort_1.shape[0]).tolist(), np.diag(
+            self.IDOA_self_cohort_True.dissimilarity_mat).tolist())
+
+        # Here I reshape the overlap matrices to two vectors, the first contains the off diagonal elements of the first
+        # case overlap matrix, the second contains all the elements of the second case overlap vector.
+        mask = np.ones_like(self.IDOA_self_cohort.overlap_mat, dtype=bool)
+        mask[range(self.IDOA_self_cohort.overlap_mat.shape[0]), range(
+            self.IDOA_self_cohort.overlap_mat.shape[1])] = False
+        overlap_vector = self.IDOA_self_cohort.overlap_mat[mask]
+        overlap_vector_True = self.IDOA_self_cohort_True.overlap_mat.reshape(-1)
+
+        # Here I test If all the elements in these vectors are equal.
+        self.assertEqual(overlap_vector.tolist(), overlap_vector_True.tolist())
+
+        # Same process for the dissimilarity matrices.
+        mask = np.ones_like(self.IDOA_self_cohort.dissimilarity_mat, dtype=bool)
+        mask[range(self.IDOA_self_cohort.dissimilarity_mat.shape[0]), range(
+            self.IDOA_self_cohort.dissimilarity_mat.shape[1])] = False
+        dissimilarity_vector = self.IDOA_self_cohort.dissimilarity_mat[mask]
+        dissimilarity_vector_True = self.IDOA_self_cohort_True.dissimilarity_mat.reshape(-1)
+
+        self.assertEqual(dissimilarity_vector.tolist(), dissimilarity_vector_True.tolist())
+
+        print(self.IDOA_self_cohort.overlap_mat)
+        print(self.IDOA_self_cohort.dissimilarity_mat)
+        print(self.IDOA_self_cohort_True.overlap_mat)
+        print(self.IDOA_self_cohort_True.dissimilarity_mat)

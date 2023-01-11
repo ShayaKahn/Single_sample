@@ -11,7 +11,12 @@ class IDOA:
         self.num_samples_second = np.size(second_cohort, 0)
         self.IDOA_vector = np.zeros(self.num_samples_second)
         self.self_cohort = self_cohort
-
+        if self_cohort:
+            self.overlap_mat = np.zeros((self.num_samples_first, self.num_samples_first-1))
+            self.dissimilarity_mat = np.zeros((self.num_samples_first, self.num_samples_first - 1))
+        else:
+            self.overlap_mat = np.zeros((self.num_samples_first, self.num_samples_first))
+            self.dissimilarity_mat = np.zeros((self.num_samples_first, self.num_samples_first))
     def calc_idoa_vector(self):
         if self.self_cohort:
             for i in range(0, self.num_samples_second):
@@ -35,6 +40,8 @@ class IDOA:
                     new_dissimilarity_vector = dissimilarity_vector[overlap_vector_index]
                     slope = linregress(new_overlap_vector, new_dissimilarity_vector)[0]
                     self.IDOA_vector[i] = slope
+                np.copyto(self.overlap_mat[i, :], overlap_vector)
+                np.copyto(self.dissimilarity_mat[i, :], dissimilarity_vector)
             return self.IDOA_vector
         else:
             for i in range(0, self.num_samples_second):
@@ -54,4 +61,6 @@ class IDOA:
                     new_dissimilarity_vector = dissimilarity_vector[overlap_vector_index]
                     slope = linregress(new_overlap_vector, new_dissimilarity_vector)[0]
                     self.IDOA_vector[i] = slope
+                np.copyto(self.overlap_mat[i, :], overlap_vector)
+                np.copyto(self.dissimilarity_mat[i, :], dissimilarity_vector)
             return self.IDOA_vector
